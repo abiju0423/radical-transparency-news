@@ -11,7 +11,10 @@ let users = {
   demo: {
     username: 'demo', password: bcrypt.hashSync('demo', 10)
   }
-}; // replace with real DB in production
+};
+
+// EXTERNAL PYTHON CLAIM EXTRACTION SERVICE
+const PYTHON_AI_URL = 'http://localhost:5001/extract_claims';
 
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
@@ -47,9 +50,19 @@ app.get('/api/news', async (req, res) => {
   }
 });
 
-// Claims endpoint (stub, to connect real claim extraction/NLP)
+// Claims endpoint using Python microservice
+app.post('/api/claims/extract', async (req, res) => {
+  try {
+    const { text } = req.body;
+    const aiResp = await axios.post(PYTHON_AI_URL, { text });
+    res.json({ claims: aiResp.data.claims });
+  } catch (err) {
+    res.status(500).json({ error:'AI Service Error', detail: err.message });
+  }
+});
+
 app.get('/api/claims/:storyId', (req, res) => {
-  // In production: analyze story text by storyId, extract claim list, sources, conflict points
+  // For demo: static claims. In production, fetch story text, call /api/claims/extract
   res.json({ claims: [
     { id:1, text: 'Climate change is accelerating.', sources: ['Reuters', 'NYT'], disputed: false },
     { id:2, text: 'US unemployment fell last month.', sources: ['WSJ', 'AP'], disputed: true }
