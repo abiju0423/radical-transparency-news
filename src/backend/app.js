@@ -1,20 +1,22 @@
-// Extend backend: POST /api/login endpoint
+// Extend backend: /api/preferences for storing/retrieving preferences
 const express = require('express');
 const app = express();
 app.use(express.json());
 
-// Login authentication (simulated for now)
-app.post('/api/login', (req, res) => {
-  const { username, password } = req.body;
-  // Simple stub logic - replace with real DB/account logic or OAuth
-  if(username==='demo' && password==='demo') {
-    res.json({ success: true, user: { username, id:1 } });
-  } else {
-    res.json({ success: false });
-  }
+let userPrefs = {};
+
+app.post('/api/preferences', (req, res) => {
+  const { userId, topics } = req.body;
+  userPrefs[userId] = topics;
+  res.json({ success: true });
 });
 
-// ... prior endpoints remain unchanged
+app.get('/api/preferences/:userId', (req, res) => {
+  const { userId } = req.params;
+  res.json({ topics: userPrefs[userId] || [] });
+});
+
+// ...prior endpoints remain
 
 app.listen(3001, () => {
   console.log('Backend listening on port 3001');
